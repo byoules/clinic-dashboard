@@ -1,0 +1,1245 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Clinic Dashboard (Mock)</title>
+
+  <!-- Inter font (optional) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root{
+      --bg: #0b1220;
+      --panel: rgba(255,255,255,.06);
+      --panel-2: rgba(255,255,255,.08);
+      --border: rgba(255,255,255,.10);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.65);
+      --muted2: rgba(255,255,255,.50);
+      --shadow: 0 12px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+      --radius2: 14px;
+      --chip: rgba(255,255,255,.10);
+      --tableRow: rgba(255,255,255,.04);
+      --tableRowHover: rgba(255,255,255,.08);
+    }
+
+    * { box-sizing: border-box; }
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 800px at 15% 10%, rgba(124,58,237,.35), transparent 55%),
+        radial-gradient(900px 600px at 90% 20%, rgba(56,189,248,.25), transparent 55%),
+        radial-gradient(900px 700px at 55% 100%, rgba(34,197,94,.18), transparent 55%),
+        var(--bg);
+      min-height: 100vh;
+      padding: 22px;
+    }
+
+    .container{
+      max-width: 1320px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .topbar{
+      display:flex;
+      align-items:flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 18px 18px;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .title{
+      display:flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 260px;
+    }
+    .title h1{
+      font-size: 18px;
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+    .title .sub{
+      font-size: 13px;
+      color: var(--muted);
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    .controls{
+      display:flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: flex-end;
+      justify-content: flex-end;
+    }
+
+    .control{
+      display:flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 180px;
+    }
+    .label{
+      font-size: 12px;
+      color: var(--muted2);
+    }
+    input[type="month"], input[type="date"], select{
+      width: 100%;
+      padding: 10px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.20);
+      color: var(--text);
+      outline: none;
+    }
+    input[type="month"]::-webkit-calendar-picker-indicator,
+    input[type="date"]::-webkit-calendar-picker-indicator{
+      filter: invert(1);
+      opacity: .75;
+    }
+
+    .btn{
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      cursor: pointer;
+      transition: transform .06s ease, background .15s ease;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      height: 40px;
+    }
+    .btn:hover{ background: rgba(255,255,255,.12); }
+    .btn:active{ transform: translateY(1px); }
+
+    /* ✅ Main two-column layout: right side wider */
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1.45fr; /* right side wider */
+      gap: 16px;
+      align-items: start;
+    }
+
+    .frame{
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      backdrop-filter: blur(10px);
+    }
+
+    .frame h2{
+      margin: 0 0 12px 0;
+      font-size: 14px;
+      color: rgba(255,255,255,.88);
+      letter-spacing: -0.01em;
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      gap: 10px;
+    }
+
+    .badge{
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--chip);
+      border: 1px solid var(--border);
+      color: rgba(255,255,255,.80);
+      white-space: nowrap;
+    }
+
+    /* Frame 1: table only */
+    .tableWrap{
+      border-radius: var(--radius2);
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      overflow: hidden;
+    }
+
+    table{
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    thead th{
+      text-align:left;
+      padding: 12px 12px;
+      font-size: 12px;
+      color: var(--muted2);
+      background: rgba(255,255,255,.06);
+      border-bottom: 1px solid var(--border);
+    }
+    tbody td{
+      padding: 12px 12px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      color: rgba(255,255,255,.88);
+      vertical-align: top;
+    }
+    tbody tr:nth-child(even){
+      background: var(--tableRow);
+    }
+    tbody tr:hover{
+      background: var(--tableRowHover);
+    }
+
+    /* Frame 2: KPIs + charts */
+    .kpis{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 12px;
+      align-items: stretch;
+    }
+
+    .kpi{
+      border-radius: var(--radius2);
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      padding: 12px 12px 12px;
+      min-height: 110px;           /* ✅ consistent box height */
+      display: flex;
+      flex-direction: column;
+    }
+    .kpi .kLabel{
+      font-size: 12px;
+      color: var(--muted2);
+      margin-bottom: 8px;
+      min-height: 32px;            /* ✅ keeps label area consistent */
+      display: flex;
+      align-items: flex-start;
+    }
+
+    /* ✅ This block aligns the big numbers across KPI cards */
+    .kpi .kValueRow{
+      min-height: 44px;            /* ✅ same “number row” height */
+      display: flex;
+      align-items: flex-end;       /* ✅ baseline-ish alignment */
+      margin-bottom: 8px;
+    }
+    .kpi .kValue{
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1;              /* ✅ avoids different baseline drift */
+    }
+
+    .kpi .kHint{
+      margin-top: auto;            /* ✅ pushes hint to bottom consistently */
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.3;
+    }
+
+    .frame2Bottom{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr; /* ✅ more room for chart, less cramped */
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .chartCard{
+      border-radius: var(--radius2);
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      padding: 12px;
+      min-height: 280px;
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .chartCard .chartTitle{
+      font-weight: 800;
+      font-size: 12px;
+      color: rgba(255,255,255,.88);
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      gap: 10px;
+    }
+    .muted{
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    /* Frame 3: line charts */
+    .frame3{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    canvas{ width: 100% !important; height: 100% !important; }
+
+    /* Responsive */
+    @media (max-width: 1100px){
+      .grid{ grid-template-columns: 1fr; }
+      .frame3{ grid-template-columns: 1fr; }
+      .kpis{ grid-template-columns: 1fr; }
+      .frame2Bottom{ grid-template-columns: 1fr; }
+      .controls{ justify-content: flex-start; }
+      .control{ min-width: 160px; }
+    }
+
+    .footerNote{
+      color: var(--muted2);
+      font-size: 12px;
+      text-align: center;
+      padding: 6px 0 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <div class="topbar">
+      <div class="title">
+        <h1>Clinic Dashboard (Mock)</h1>
+        <p class="sub">
+          Dashboard for <span id="clinicNameInline" style="font-weight:800;"></span> • Interactive month range filters update KPIs + charts.
+        </p>
+      </div>
+
+      <div class="controls">
+        <div class="control">
+          <div class="label">Clinic</div>
+          <select id="clinicSelect"></select>
+        </div>
+
+        <div class="control">
+          <div class="label">Start month</div>
+          <input id="startMonth" type="month" />
+        </div>
+
+        <div class="control">
+          <div class="label">End month</div>
+          <input id="endMonth" type="month" />
+        </div>
+
+        <div class="control">
+          <div class="label">Clinic day (schedule)</div>
+          <input id="clinicDay" type="date" />
+        </div>
+
+        <button class="btn" id="applyBtn">Apply</button>
+      </div>
+    </div>
+
+    <div class="topbar" style="align-items:center;flex-wrap:wrap;">
+      <div>
+        <label class="btn" for="dataFile">Load data CSV</label>
+        <input id="dataFile" type="file" accept=".csv,text/csv" style="max-width:230px;margin-left:10px;" />
+        <button class="btn" id="sampleBtn" type="button">Restore sample data</button>
+      </div>
+      <div id="dataStatus" role="status" aria-live="polite" style="font-size:13px;">Sample data: 26 fabricated appointment records loaded.</div>
+      <div id="chartStatus" role="status" style="font-size:13px;"></div>
+    </div>
+
+    <div class="grid">
+      <!-- FRAME 1 -->
+      <section class="frame">
+        <h2>
+          <span>Frame 1 — Patients scheduled for the selected clinic day</span>
+          <span class="badge" id="frame1Badge"></span>
+        </h2>
+
+        <!-- ✅ Simplified: table only -->
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 90px;">Time</th>
+                <th>Patient</th>
+                <th style="width: 140px;">Visit type</th>
+                <th style="width: 120px;">Reason</th>
+                <th style="width: 160px;">Clinic</th>
+              </tr>
+            </thead>
+            <tbody id="scheduleBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- FRAME 2 -->
+      <section class="frame">
+        <h2>
+          <span>Frame 2 — Monthly KPIs + Consult reason breakdown</span>
+          <span class="badge" id="frame2Badge"></span>
+        </h2>
+
+        <div class="kpis">
+          <div class="kpi">
+            <div class="kLabel">Consults (Reason A/B/C)</div>
+            <div class="kValueRow"><div class="kValue" id="kConsults">0</div></div>
+            <div class="kHint">Within the selected month range</div>
+          </div>
+          <div class="kpi">
+            <div class="kLabel">New patients</div>
+            <div class="kValueRow"><div class="kValue" id="kNew">0</div></div>
+            <div class="kHint">Unique patients marked New in range</div>
+          </div>
+          <div class="kpi">
+            <div class="kLabel">Repeat visits (≤ 183 days)</div>
+            <div class="kValueRow"><div class="kValue" id="kRepeat6m">0</div></div>
+            <div class="kHint">Prior visit on an earlier date, within 183 days</div>
+          </div>
+        </div>
+
+        <div class="frame2Bottom">
+          <div class="chartCard">
+            <div class="chartTitle">
+              <span>Consults by reason</span>
+              <span class="muted" id="reasonSubtitle">A / B / C</span>
+            </div>
+            <div style="flex:1; min-height: 210px;">
+              <canvas id="reasonChart"></canvas>
+            </div>
+          </div>
+
+          <div class="chartCard">
+            <div class="chartTitle">
+              <span>Range summary</span>
+              <span class="muted" id="rangeSummary"></span>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <div style="padding:12px; border:1px solid rgba(255,255,255,.10); border-radius:14px; background: rgba(255,255,255,.04);">
+                <div style="font-size:12px; color: rgba(255,255,255,.55); margin-bottom:8px; font-weight:700;">Data notes</div>
+                <ul style="margin:0; padding-left: 18px; color: rgba(255,255,255,.82); font-size: 13px; line-height: 1.5;">
+                  <li>Click Apply after changing filters.</li>
+                  <li>Schedule table is tied to the selected clinic day.</li>
+                  <li>All supplied sample records are fabricated. Imported records replace the sample.</li>
+                </ul>
+              </div>
+
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div style="padding:12px; border:1px solid rgba(255,255,255,.10); border-radius:14px; background: rgba(255,255,255,.04);">
+                  <div style="font-size:12px; color: rgba(255,255,255,.55); margin-bottom:6px; font-weight:700;">Selected clinic</div>
+                  <div style="font-weight:800; letter-spacing:-0.02em;" id="selectedClinicLabel"></div>
+                </div>
+                <div style="padding:12px; border:1px solid rgba(255,255,255,.10); border-radius:14px; background: rgba(255,255,255,.04);">
+                  <div style="font-size:12px; color: rgba(255,255,255,.55); margin-bottom:6px; font-weight:700;">Clinic day</div>
+                  <div style="font-weight:800; letter-spacing:-0.02em;" id="selectedClinicDayLabel"></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+    </div>
+
+    <!-- FRAME 3 -->
+    <section class="frame">
+      <h2>
+        <span>Frame 3 — Month-by-month trends</span>
+        <span class="badge" id="frame3Badge"></span>
+      </h2>
+
+      <div class="frame3">
+        <div class="chartCard" style="min-height: 330px;">
+          <div class="chartTitle">
+            <span>Visits by month</span>
+            <span class="muted">All visit types</span>
+          </div>
+          <div style="flex:1; min-height: 240px;">
+            <canvas id="visitsChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chartCard" style="min-height: 330px;">
+          <div class="chartTitle">
+            <span>Consults by month</span>
+            <span class="muted">Reason A/B/C only</span>
+          </div>
+          <div style="flex:1; min-height: 240px;">
+            <canvas id="consultsChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footerNote">Clinic dashboard • CSV input • Vanilla JS + Chart.js</div>
+  </div>
+
+<script>
+// The embedded sample is also supplied as clinic_data.csv.
+const SAMPLE_DATA = {
+  "schemaVersion": 1,
+  "visits": [
+    {
+      "date": "2025-09-03",
+      "time": "09:00",
+      "patient": "Jordan Lee",
+      "clinic": "Clinic A",
+      "visitType": "New",
+      "reason": "A",
+      "consult": true,
+      "patientId": "P001",
+      "visitId": "V0001"
+    },
+    {
+      "date": "2025-09-03",
+      "time": "09:30",
+      "patient": "Amira Khan",
+      "clinic": "Clinic A",
+      "visitType": "New",
+      "reason": "B",
+      "consult": true,
+      "patientId": "P002",
+      "visitId": "V0002"
+    },
+    {
+      "date": "2025-09-03",
+      "time": "10:00",
+      "patient": "Evan Brooks",
+      "clinic": "Clinic A",
+      "visitType": "Repeat",
+      "reason": "",
+      "consult": false,
+      "patientId": "P003",
+      "visitId": "V0003"
+    },
+    {
+      "date": "2025-09-03",
+      "time": "10:30",
+      "patient": "Mina Park",
+      "clinic": "Clinic A",
+      "visitType": "New",
+      "reason": "C",
+      "consult": true,
+      "patientId": "P004",
+      "visitId": "V0004"
+    },
+    {
+      "date": "2025-09-03",
+      "time": "11:00",
+      "patient": "Rafael Ortiz",
+      "clinic": "Clinic A",
+      "visitType": "Repeat",
+      "reason": "A",
+      "consult": true,
+      "patientId": "P005",
+      "visitId": "V0005"
+    },
+    {
+      "date": "2025-09-03",
+      "time": "13:00",
+      "patient": "Sofia Patel",
+      "clinic": "Clinic A",
+      "visitType": "New",
+      "reason": "B",
+      "consult": true,
+      "patientId": "P006",
+      "visitId": "V0006"
+    },
+    {
+      "date": "2025-09-03",
+      "time": "13:30",
+      "patient": "Noah Bennett",
+      "clinic": "Clinic A",
+      "visitType": "Repeat",
+      "reason": "",
+      "consult": false,
+      "patientId": "P007",
+      "visitId": "V0007"
+    },
+    {
+      "date": "2025-09-03",
+      "time": "14:00",
+      "patient": "Hana Sato",
+      "clinic": "Clinic A",
+      "visitType": "New",
+      "reason": "A",
+      "consult": true,
+      "patientId": "P008",
+      "visitId": "V0008"
+    },
+    {
+      "date": "2025-09-03",
+      "time": "15:30",
+      "patient": "Priya Singh",
+      "clinic": "Clinic A",
+      "visitType": "Repeat",
+      "reason": "C",
+      "consult": true,
+      "patientId": "P009",
+      "visitId": "V0009"
+    },
+    {
+      "date": "2025-09-03",
+      "time": "17:00",
+      "patient": "Caleb Young",
+      "clinic": "Clinic A",
+      "visitType": "New",
+      "reason": "",
+      "consult": false,
+      "patientId": "P010",
+      "visitId": "V0010"
+    },
+    {
+      "date": "2025-09-03",
+      "time": "17:30",
+      "patient": "Add-on: Tessa Moore",
+      "clinic": "Clinic A",
+      "visitType": "New",
+      "reason": "A",
+      "consult": true,
+      "patientId": "P011",
+      "visitId": "V0011"
+    },
+    {
+      "date": "2025-10-08",
+      "time": "09:00",
+      "patient": "Jordan Lee",
+      "clinic": "Clinic A",
+      "visitType": "Repeat",
+      "reason": "B",
+      "consult": true,
+      "patientId": "P001",
+      "visitId": "V0012"
+    },
+    {
+      "date": "2025-10-08",
+      "time": "09:30",
+      "patient": "Lucas Nguyen",
+      "clinic": "Clinic A",
+      "visitType": "New",
+      "reason": "A",
+      "consult": true,
+      "patientId": "P012",
+      "visitId": "V0013"
+    },
+    {
+      "date": "2025-10-08",
+      "time": "10:30",
+      "patient": "Amira Khan",
+      "clinic": "Clinic A",
+      "visitType": "Repeat",
+      "reason": "",
+      "consult": false,
+      "patientId": "P002",
+      "visitId": "V0014"
+    },
+    {
+      "date": "2025-10-08",
+      "time": "13:00",
+      "patient": "Mina Park",
+      "clinic": "Clinic A",
+      "visitType": "Repeat",
+      "reason": "C",
+      "consult": true,
+      "patientId": "P004",
+      "visitId": "V0015"
+    },
+    {
+      "date": "2025-11-05",
+      "time": "10:00",
+      "patient": "Rafael Ortiz",
+      "clinic": "Clinic A",
+      "visitType": "Repeat",
+      "reason": "A",
+      "consult": true,
+      "patientId": "P005",
+      "visitId": "V0016"
+    },
+    {
+      "date": "2025-11-05",
+      "time": "14:30",
+      "patient": "Sofia Patel",
+      "clinic": "Clinic A",
+      "visitType": "Repeat",
+      "reason": "B",
+      "consult": true,
+      "patientId": "P006",
+      "visitId": "V0017"
+    },
+    {
+      "date": "2025-12-10",
+      "time": "11:00",
+      "patient": "Hana Sato",
+      "clinic": "Clinic A",
+      "visitType": "Repeat",
+      "reason": "A",
+      "consult": true,
+      "patientId": "P008",
+      "visitId": "V0018"
+    },
+    {
+      "date": "2026-01-07",
+      "time": "09:30",
+      "patient": "Priya Singh",
+      "clinic": "Clinic A",
+      "visitType": "Repeat",
+      "reason": "C",
+      "consult": true,
+      "patientId": "P009",
+      "visitId": "V0019"
+    },
+    {
+      "date": "2026-01-07",
+      "time": "15:00",
+      "patient": "Omar Hassan",
+      "clinic": "Clinic A",
+      "visitType": "New",
+      "reason": "B",
+      "consult": true,
+      "patientId": "P013",
+      "visitId": "V0020"
+    },
+    {
+      "date": "2025-09-03",
+      "time": "10:00",
+      "patient": "Ella Carter",
+      "clinic": "Clinic B",
+      "visitType": "New",
+      "reason": "A",
+      "consult": true,
+      "patientId": "P014",
+      "visitId": "V0021"
+    },
+    {
+      "date": "2025-10-15",
+      "time": "13:30",
+      "patient": "Ben Wallace",
+      "clinic": "Clinic B",
+      "visitType": "Repeat",
+      "reason": "",
+      "consult": false,
+      "patientId": "P015",
+      "visitId": "V0022"
+    },
+    {
+      "date": "2025-11-19",
+      "time": "09:00",
+      "patient": "Kai Johnson",
+      "clinic": "Clinic B",
+      "visitType": "New",
+      "reason": "C",
+      "consult": true,
+      "patientId": "P016",
+      "visitId": "V0023"
+    },
+    {
+      "date": "2025-09-12",
+      "time": "09:00",
+      "patient": "Maya Rivera",
+      "clinic": "Clinic C",
+      "visitType": "New",
+      "reason": "B",
+      "consult": true,
+      "patientId": "P017",
+      "visitId": "V0024"
+    },
+    {
+      "date": "2025-12-03",
+      "time": "11:30",
+      "patient": "Theo Martin",
+      "clinic": "Clinic C",
+      "visitType": "Repeat",
+      "reason": "",
+      "consult": false,
+      "patientId": "P018",
+      "visitId": "V0025"
+    },
+    {
+      "date": "2026-01-14",
+      "time": "14:00",
+      "patient": "Ivy Chen",
+      "clinic": "Clinic C",
+      "visitType": "New",
+      "reason": "A",
+      "consult": true,
+      "patientId": "P019",
+      "visitId": "V0026"
+    }
+  ]
+};
+let VISITS = SAMPLE_DATA.visits;
+let CLINICS = [...new Set(VISITS.map(v => v.clinic))];
+
+// RFC-style CSV parsing: commas, quoted cells, escaped quotes, CRLF/LF, BOM.
+function parseCSV(text){
+  text=text.replace(/^\uFEFF/,'');
+  const rows=[];
+  let row=[], cell='', quoted=false, closed=false, atStart=true;
+  function pushCell(){ row.push(cell); cell=''; closed=false; atStart=true; }
+  function pushRow(){ pushCell(); rows.push(row); row=[]; }
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(quoted){
+      if(ch==='"'){
+        if(text[i+1]==='"'){cell+='"';i++;}
+        else {quoted=false;closed=true;}
+      }else cell+=ch;
+    }else if(ch===',') pushCell();
+    else if(ch==='\n' || ch==='\r'){
+      if(ch==='\r' && text[i+1]==='\n') i++;
+      pushRow();
+    }else if(ch==='"'){
+      if(!atStart || closed) throw new Error('Invalid quote in CSV. Quote entire cells containing commas or quotes.');
+      quoted=true;atStart=false;
+    }else{
+      if(closed) throw new Error('Unexpected characters after a quoted CSV cell.');
+      cell+=ch;atStart=false;
+    }
+  }
+  if(quoted) throw new Error('CSV has an unclosed quoted cell.');
+  if(cell.length || row.length || closed) pushRow();
+  const nonblank=rows.filter(r=>!(r.length===1 && r[0]===''));
+  if(!nonblank.length) throw new Error('CSV is empty.');
+  const headers=nonblank.shift();
+  const expected=['visitId','patientId','date','time','patient','clinic','visitType','reason','consult'];
+  if(headers.length!==expected.length || new Set(headers).size!==headers.length || expected.some(k=>!headers.includes(k)))
+    throw new Error('CSV must contain exactly these headers: '+expected.join(', '));
+  const visits=nonblank.map((r,i)=>{
+    if(r.length!==headers.length) throw new Error(`Record ${i+1}: expected ${headers.length} columns, found ${r.length}.`);
+    const v=Object.fromEntries(headers.map((key,j)=>[key,r[j]]));
+    const value=v.consult.toLowerCase();
+    if(!['true','false'].includes(value)) throw new Error(`Record ${i+1}: consult must be true or false.`);
+    v.consult=value==='true';
+    return v;
+  });
+  return {schemaVersion:1,visits};
+}
+
+function validateData(data){
+  if(!data || data.schemaVersion !== 1 || !Array.isArray(data.visits) || !data.visits.length)
+    throw new Error('Expected schemaVersion: 1 and a nonempty visits array.');
+  const ids = new Set(), names = new Map();
+  const fields = ['visitId','patientId','date','time','patient','clinic','visitType','reason','consult'];
+  data.visits.forEach((v,i)=>{
+    const fail = message => { throw new Error(`Record ${i+1}: ${message}`); };
+    if(!v || typeof v !== 'object' || Array.isArray(v)) fail('expected an object.');
+    for(const k of fields) if(!(k in v)) fail(`missing ${k}.`);
+    for(const k of ['visitId','patientId','patient','clinic'])
+      if(typeof v[k] !== 'string' || !v[k].trim() || v[k] !== v[k].trim()) fail(`${k} must be a nonempty string without surrounding spaces.`);
+    if(ids.has(v.visitId)) fail(`duplicate visitId ${v.visitId}.`);
+    ids.add(v.visitId);
+    if(typeof v.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v.date) ||
+       !Number.isFinite(Date.parse(v.date+'T00:00:00Z')) || new Date(v.date+'T00:00:00Z').toISOString().slice(0,10) !== v.date)
+      fail('date must be a real YYYY-MM-DD date.');
+    if(typeof v.time !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(v.time)) fail('time must use 24-hour HH:MM.');
+    if(!['New','Repeat'].includes(v.visitType)) fail('visitType must be New or Repeat.');
+    if(typeof v.consult !== 'boolean') fail('consult must be true or false, without quotes.');
+    if(!['A','B','C',''].includes(v.reason) || (v.consult && !v.reason) || (!v.consult && v.reason !== ''))
+      fail('consults require reason A, B, or C; non-consults require an empty reason.');
+    if(names.has(v.patientId) && names.get(v.patientId) !== v.patient) fail('the same patientId must use the same patient display name.');
+    names.set(v.patientId,v.patient);
+  });
+  return data;
+}
+function setData(data, label){
+  validateData(data);
+  VISITS = data.visits;
+  CLINICS = [...new Set(VISITS.map(v=>v.clinic))];
+  state.clinic = CLINICS[0];
+  const dates = VISITS.map(v=>v.date).sort();
+  state.startMonth = dates[0].slice(0,7);
+  state.endMonth = dates[dates.length-1].slice(0,7);
+  state.clinicDay = VISITS.filter(v=>v.clinic===state.clinic).map(v=>v.date).sort()[0];
+  clearNode(els.clinicSelect);
+  initClinicSelect();
+  els.clinicSelect.value=state.clinic;
+  els.startMonth.value=state.startMonth;
+  els.endMonth.value=state.endMonth;
+  els.clinicDay.value=state.clinicDay;
+  applyFromInputs();
+  document.getElementById('dataStatus').textContent=`${label}: ${VISITS.length} appointment records loaded.`;
+}
+
+function yyyyMmFromDate(isoDate){
+  const d = new Date(isoDate + "T00:00:00");
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  return `${y}-${m}`;
+}
+function fmtDateLong(isoDate){
+  const d = new Date(isoDate + "T00:00:00");
+  return d.toLocaleDateString(undefined, {year:"numeric", month:"short", day:"numeric"});
+}
+function toMonthStart(yyyyMm){
+  return new Date(yyyyMm + "-01T00:00:00");
+}
+function monthKey(d){
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  return `${y}-${m}`;
+}
+function addMonths(dateObj, n){
+  const d = new Date(dateObj);
+  d.setMonth(d.getMonth() + n);
+  return d;
+}
+function inRangeMonth(isoDate, startYm, endYm){
+  const ym = yyyyMmFromDate(isoDate);
+  return ym >= startYm && ym <= endYm;
+}
+
+/**
+ * Repeat within 6 months metric (simple mock logic):
+ * A "repeat within 6 months" is a visit where the same patient had any prior visit
+ * within 183 days.
+ */
+function isRepeatWithin6Months(visit, allVisits){
+  const vDate = new Date(visit.date + "T00:00:00Z");
+  const prior = allVisits
+    .filter(x => x.patientId === visit.patientId && x.clinic === visit.clinic)
+    .filter(x => new Date(x.date + "T00:00:00Z") < vDate)
+    .sort((a,b)=> new Date(b.date) - new Date(a.date))[0];
+
+  if(!prior) return false;
+  const pDate = new Date(prior.date + "T00:00:00Z");
+  const diffDays = Math.floor((vDate - pDate) / (1000*60*60*24));
+  return diffDays <= 183;
+}
+
+/**
+ * -----------------------------------------
+ * State + UI bindings
+ * -----------------------------------------
+ */
+const state = {
+  clinic: "Clinic A",
+  startMonth: "2025-09",
+  endMonth:   "2026-01",
+  clinicDay:  "2025-09-03"
+};
+
+const els = {
+  clinicNameInline: document.getElementById("clinicNameInline"),
+  clinicSelect: document.getElementById("clinicSelect"),
+  startMonth: document.getElementById("startMonth"),
+  endMonth: document.getElementById("endMonth"),
+  clinicDay: document.getElementById("clinicDay"),
+  applyBtn: document.getElementById("applyBtn"),
+
+  frame1Badge: document.getElementById("frame1Badge"),
+  scheduleBody: document.getElementById("scheduleBody"),
+
+  frame2Badge: document.getElementById("frame2Badge"),
+  frame3Badge: document.getElementById("frame3Badge"),
+
+  kConsults: document.getElementById("kConsults"),
+  kNew: document.getElementById("kNew"),
+  kRepeat6m: document.getElementById("kRepeat6m"),
+
+  rangeSummary: document.getElementById("rangeSummary"),
+  selectedClinicLabel: document.getElementById("selectedClinicLabel"),
+  selectedClinicDayLabel: document.getElementById("selectedClinicDayLabel"),
+  reasonSubtitle: document.getElementById("reasonSubtitle")
+};
+
+// Populate clinic dropdown
+function initClinicSelect(){
+  CLINICS.forEach(c=>{
+    const opt = document.createElement("option");
+    opt.value = c;
+    opt.textContent = c;
+    els.clinicSelect.appendChild(opt);
+  });
+}
+
+/**
+ * -----------------------------------------
+ * Charts
+ * -----------------------------------------
+ */
+let reasonChart, visitsChart, consultsChart;
+
+function missingChart(){
+  document.getElementById('chartStatus').textContent='Charts unavailable: Chart.js could not load. Connect to the internet and reload. Tables and KPIs still work.';
+  return {data:{labels:[],datasets:[{data:[]}]},update(){}};
+}
+
+function makeReasonChart(ctx){
+  if(typeof Chart === "undefined") return missingChart();
+  return new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: ["Reason A", "Reason B", "Reason C"],
+      datasets: [{
+        label: "Consults",
+        data: [0,0,0],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: { color: "rgba(255,255,255,.78)", boxWidth: 10, boxHeight: 10 }
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `${ctx.label}: ${ctx.parsed}`
+          }
+        }
+      }
+    }
+  });
+}
+
+function makeLineChart(ctx, label){
+  if(typeof Chart === "undefined") return missingChart();
+  return new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: [],
+      datasets: [{
+        label,
+        data: [],
+        tension: 0.35,
+        fill: false,
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          labels: { color: "rgba(255,255,255,.78)" }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: "rgba(255,255,255,.65)" },
+          grid: { color: "rgba(255,255,255,.08)" }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { color: "rgba(255,255,255,.65)", precision: 0 },
+          grid: { color: "rgba(255,255,255,.08)" }
+        }
+      }
+    }
+  });
+}
+
+/**
+ * -----------------------------------------
+ * Rendering helpers
+ * -----------------------------------------
+ */
+function clearNode(node){
+  while(node.firstChild) node.removeChild(node.firstChild);
+}
+
+function renderScheduleTable(dayVisits){
+  clearNode(els.scheduleBody);
+
+  if(dayVisits.length === 0){
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 5;
+    td.style.padding = "16px";
+    td.style.color = "rgba(255,255,255,.70)";
+    td.textContent = "No appointments found for this clinic day.";
+    tr.appendChild(td);
+    els.scheduleBody.appendChild(tr);
+    return;
+  }
+
+  dayVisits
+    .slice()
+    .sort((a,b)=> a.time.localeCompare(b.time))
+    .forEach(v=>{
+      const tr = document.createElement("tr");
+      for(const value of [v.time, v.patient, v.visitType, v.consult ? v.reason : '—', v.clinic]){
+        const td = document.createElement('td');
+        td.textContent = value;
+        tr.appendChild(td);
+      }
+      els.scheduleBody.appendChild(tr);
+    });
+}
+
+/**
+ * -----------------------------------------
+ * Core computation for Frame 2 + 3
+ * -----------------------------------------
+ */
+function getFilteredVisits(){
+  return VISITS.filter(v => v.clinic === state.clinic)
+               .filter(v => inRangeMonth(v.date, state.startMonth, state.endMonth));
+}
+
+function buildMonthAxis(startYm, endYm){
+  const labels = [];
+  let cur = toMonthStart(startYm);
+  const end = toMonthStart(endYm);
+  while(cur <= end){
+    labels.push(monthKey(cur));
+    cur = addMonths(cur, 1);
+  }
+  return labels;
+}
+
+function updateKPIsAndCharts(){
+  const filtered = getFilteredVisits();
+
+  // KPIs
+  const consults = filtered.filter(v => v.consult);
+  const consultsABC = consults.filter(v => ["A","B","C"].includes(v.reason));
+  const consultCount = consultsABC.length;
+
+  // Count distinct patients explicitly marked New within this clinic/range.
+  const newCount = new Set(filtered.filter(v=>v.visitType === 'New').map(v=>v.patientId)).size;
+
+  // Repeat within 6 months (within filtered range)
+  const repeat6m = filtered.filter(v => isRepeatWithin6Months(v, VISITS)).length;
+
+  els.kConsults.textContent = consultCount;
+  els.kNew.textContent = newCount;
+  els.kRepeat6m.textContent = repeat6m;
+
+  // Reason breakdown (A,B,C)
+  const reasonCounts = {A:0, B:0, C:0};
+  consultsABC.forEach(v => { reasonCounts[v.reason]++; });
+
+  reasonChart.data.datasets[0].data = [reasonCounts.A, reasonCounts.B, reasonCounts.C];
+  reasonChart.update();
+
+  // Month-by-month series
+  const months = buildMonthAxis(state.startMonth, state.endMonth);
+  const visitsByMonth = Object.fromEntries(months.map(m => [m, 0]));
+  const consultsByMonth = Object.fromEntries(months.map(m => [m, 0]));
+
+  filtered.forEach(v=>{
+    const ym = yyyyMmFromDate(v.date);
+    if(visitsByMonth[ym] !== undefined) visitsByMonth[ym]++;
+    if(v.consult && ["A","B","C"].includes(v.reason)){
+      if(consultsByMonth[ym] !== undefined) consultsByMonth[ym]++;
+    }
+  });
+
+  visitsChart.data.labels = months;
+  visitsChart.data.datasets[0].data = months.map(m => visitsByMonth[m] || 0);
+  visitsChart.update();
+
+  consultsChart.data.labels = months;
+  consultsChart.data.datasets[0].data = months.map(m => consultsByMonth[m] || 0);
+  consultsChart.update();
+
+  // Badges + summaries
+  els.frame2Badge.textContent = `${state.startMonth} → ${state.endMonth}`;
+  els.frame3Badge.textContent = `${state.startMonth} → ${state.endMonth}`;
+  els.rangeSummary.textContent = `${state.startMonth} → ${state.endMonth}`;
+  els.selectedClinicLabel.textContent = state.clinic;
+}
+
+function updateScheduleFrame(){
+  const dayVisits = VISITS.filter(v => v.clinic === state.clinic)
+                          .filter(v => v.date === state.clinicDay);
+
+  els.frame1Badge.textContent = `${fmtDateLong(state.clinicDay)} • ${dayVisits.length} appt(s)`;
+  renderScheduleTable(dayVisits);
+
+  els.selectedClinicDayLabel.textContent = fmtDateLong(state.clinicDay);
+}
+
+/**
+ * -----------------------------------------
+ * Apply controls
+ * -----------------------------------------
+ */
+function clampEndMonth(startYm, endYm){
+  if(endYm < startYm) return startYm;
+  return endYm;
+}
+
+function applyFromInputs(){
+  const clinic = els.clinicSelect.value;
+  const startYm = els.startMonth.value || state.startMonth;
+  const endYm = clampEndMonth(startYm, els.endMonth.value || state.endMonth);
+
+  let clinicDay = els.clinicDay.value || state.clinicDay;
+
+  state.clinic = clinic;
+  state.startMonth = startYm;
+  state.endMonth = endYm;
+  state.clinicDay = clinicDay;
+
+  // reflect back to inputs
+  els.startMonth.value = state.startMonth;
+  els.endMonth.value = state.endMonth;
+  els.clinicDay.value = state.clinicDay;
+
+  // header
+  els.clinicNameInline.textContent = state.clinic;
+
+  updateScheduleFrame();
+  updateKPIsAndCharts();
+}
+
+/**
+ * -----------------------------------------
+ * Init
+ * -----------------------------------------
+ */
+function init(){
+  initClinicSelect();
+
+  // Set defaults
+  els.clinicSelect.value = state.clinic;
+  els.startMonth.value = state.startMonth;
+  els.endMonth.value = state.endMonth;
+  els.clinicDay.value = state.clinicDay;
+
+  els.clinicNameInline.textContent = state.clinic;
+  els.selectedClinicLabel.textContent = state.clinic;
+
+  // Create charts
+  reasonChart = makeReasonChart(document.getElementById("reasonChart"));
+  visitsChart = makeLineChart(document.getElementById("visitsChart"), "Visits");
+  consultsChart = makeLineChart(document.getElementById("consultsChart"), "Consults");
+
+  // Wire events
+  els.applyBtn.addEventListener("click", applyFromInputs);
+
+  document.getElementById('dataFile').addEventListener('change', async event=>{
+    const file=event.target.files[0];
+    if(!file) return;
+    try { setData(parseCSV(await file.text()), file.name); }
+    catch(error){ document.getElementById('dataStatus').textContent=`Import failed: ${error.message} Previous data retained.`; }
+    finally { event.target.value=''; }
+  });
+  document.getElementById('sampleBtn').addEventListener('click',()=>setData(SAMPLE_DATA,'Sample data'));
+  validateData(SAMPLE_DATA);
+  applyFromInputs();
+}
+
+init();
+</script>
+</body>
+</html>

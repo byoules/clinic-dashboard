@@ -1,0 +1,27 @@
+visitId,patientId,date,time,patient,clinic,visitType,reason,consult
+V0001,P001,2025-09-03,09:00,Jordan Lee,Clinic A,New,A,true
+V0002,P002,2025-09-03,09:30,Amira Khan,Clinic A,New,B,true
+V0003,P003,2025-09-03,10:00,Evan Brooks,Clinic A,Repeat,,false
+V0004,P004,2025-09-03,10:30,Mina Park,Clinic A,New,C,true
+V0005,P005,2025-09-03,11:00,Rafael Ortiz,Clinic A,Repeat,A,true
+V0006,P006,2025-09-03,13:00,Sofia Patel,Clinic A,New,B,true
+V0007,P007,2025-09-03,13:30,Noah Bennett,Clinic A,Repeat,,false
+V0008,P008,2025-09-03,14:00,Hana Sato,Clinic A,New,A,true
+V0009,P009,2025-09-03,15:30,Priya Singh,Clinic A,Repeat,C,true
+V0010,P010,2025-09-03,17:00,Caleb Young,Clinic A,New,,false
+V0011,P011,2025-09-03,17:30,Add-on: Tessa Moore,Clinic A,New,A,true
+V0012,P001,2025-10-08,09:00,Jordan Lee,Clinic A,Repeat,B,true
+V0013,P012,2025-10-08,09:30,Lucas Nguyen,Clinic A,New,A,true
+V0014,P002,2025-10-08,10:30,Amira Khan,Clinic A,Repeat,,false
+V0015,P004,2025-10-08,13:00,Mina Park,Clinic A,Repeat,C,true
+V0016,P005,2025-11-05,10:00,Rafael Ortiz,Clinic A,Repeat,A,true
+V0017,P006,2025-11-05,14:30,Sofia Patel,Clinic A,Repeat,B,true
+V0018,P008,2025-12-10,11:00,Hana Sato,Clinic A,Repeat,A,true
+V0019,P009,2026-01-07,09:30,Priya Singh,Clinic A,Repeat,C,true
+V0020,P013,2026-01-07,15:00,Omar Hassan,Clinic A,New,B,true
+V0021,P014,2025-09-03,10:00,Ella Carter,Clinic B,New,A,true
+V0022,P015,2025-10-15,13:30,Ben Wallace,Clinic B,Repeat,,false
+V0023,P016,2025-11-19,09:00,Kai Johnson,Clinic B,New,C,true
+V0024,P017,2025-09-12,09:00,Maya Rivera,Clinic C,New,B,true
+V0025,P018,2025-12-03,11:30,Theo Martin,Clinic C,Repeat,,false
+V0026,P019,2026-01-14,14:00,Ivy Chen,Clinic C,New,A,true
